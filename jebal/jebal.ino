@@ -5,14 +5,14 @@
 HTTPClient myClient;
 unsigned long long lastMs=0;
 float temp =0;
-
+Ticker Timer;
 volatile int dt[82]={0,};
 volatile int data[82]={0,};
 int readTemp;
 int readHumid;
 volatile int cnt=0;
 volatile int t=0;
-
+int i=0;
 void setup() {
 
   Serial.begin(74880);
@@ -29,7 +29,10 @@ ICACHE_RAM_ATTR void collector1(){
     cnt++;
    
 }
-
+void timeout(){
+  if(data[i]>2000)
+     return 0;
+}
 int readDHT11(int *readTemp, int *readHumid)
 {
   attachInterrupt(digitalPinToInterrupt(DHT11PIN), collector0, FALLING);
@@ -45,10 +48,14 @@ int readDHT11(int *readTemp, int *readHumid)
    
      *readHumid = 0; 
      *readTemp = 0;
-    for(int i =0; i<41;i++)
+    for(int i =0; i<40;i++)
     {
       data[i]=dt[i+1]-dt[i];
       //Serial.printf("cnt = %d, dt[cnt] = %d, %d, data = %d\r\n",i, dt[i],dt[i+1],data[i]);
+      if(Timer.attach(1, timeout))
+      {
+        break;
+      }
     }
     cnt=0;
     
@@ -86,6 +93,6 @@ void loop() {
   delay(5500);
   Serial.printf("Temp: %d, Humid: %d\r\n",readTemp, readHumid);
   dt[82]={0,};
- data[82]={0,};
+  data[82]={0,};
  
 }
