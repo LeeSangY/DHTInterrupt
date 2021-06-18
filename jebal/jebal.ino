@@ -5,13 +5,13 @@
 HTTPClient myClient;
 unsigned long long lastMs=0;
 float temp =0;
-int flag=0;
-int dt[82]={0,};
-int data[82]={0,};
+
+volatile int dt[82]={0,};
+volatile int data[82]={0,};
 int readTemp;
 int readHumid;
-int cnt=0;
-int t=0;
+volatile int cnt=0;
+volatile int t=0;
 
 void setup() {
 
@@ -20,12 +20,12 @@ void setup() {
 }
 
 ICACHE_RAM_ATTR void collector0(){
-   dt[cnt*2] = micros()-dt[cnt];
-   cnt++;
+   dt[cnt*2] = micros();
+    
 }
 
 ICACHE_RAM_ATTR void collector1(){
-   dt[cnt*2+1] = micros()-dt[cnt];
+  dt[cnt*2+1] = micros();
    cnt++;
 }
 
@@ -33,27 +33,28 @@ int readDHT11(int *readTemp, int *readHumid)
 {
   attachInterrupt(digitalPinToInterrupt(DHT11PIN), collector0, FALLING);
   attachInterrupt(digitalPinToInterrupt(DHT11PIN), collector1, RISING);
-  int dt[1000]={0,};
-  int data[1000]={0,};
+  
+  
   digitalWrite(DHT11PIN, 1);
   pinMode(DHT11PIN, OUTPUT);
   delay(1);
   digitalWrite(DHT11PIN, 0);
   delay(20);
   pinMode(DHT11PIN, INPUT_PULLUP);
-  
-  
-  
-  dt[cnt*2] = dt[cnt] - dt[cnt+1]
- 
-    *readHumid = 0; 
-    *readTemp = 0;
+   
+     *readHumid = 0; 
+     *readTemp = 0;
+    for(int i =2; i<40;i++)
+    {
+      dt[i]=dt[i+1]-dt[i];
+      Serial.printf("cnt = %d, dt[cnt] = %d, %d\r\n",i, dt[i],dt[i+1]);
+    }
+    cnt=0;
     
-
   for(t=2;t<10;t++) //Humid
   { 
     *readHumid = *readHumid<<1;
-    if( data[t]>49)
+    if( dt[t]>49)
     {
       *readHumid = *readHumid +1 ;
     }
@@ -66,7 +67,7 @@ int readDHT11(int *readTemp, int *readHumid)
   for(t=17;t<25;t++) //Temp
   { 
     *readTemp = *readTemp<<1;
-     if( data[t]>49)
+     if( dt[t]>49)
     {
       *readTemp = *readTemp +1 ;
     }
