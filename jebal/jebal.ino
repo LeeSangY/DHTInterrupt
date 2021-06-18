@@ -20,13 +20,14 @@ void setup() {
 }
 
 ICACHE_RAM_ATTR void collector0(){
-   dt[cnt*2] = micros();
-    
+  dt[cnt] = micros();
+   cnt++;
 }
 
 ICACHE_RAM_ATTR void collector1(){
-  dt[cnt*2+1] = micros();
-   cnt++;
+ dt[cnt] = micros();
+    cnt++;
+   
 }
 
 int readDHT11(int *readTemp, int *readHumid)
@@ -44,17 +45,17 @@ int readDHT11(int *readTemp, int *readHumid)
    
      *readHumid = 0; 
      *readTemp = 0;
-    for(int i =2; i<40;i++)
+    for(int i =0; i<41;i++)
     {
-      dt[i]=dt[i+1]-dt[i];
-      Serial.printf("cnt = %d, dt[cnt] = %d, %d\r\n",i, dt[i],dt[i+1]);
+      data[i]=dt[i+1]-dt[i];
+      //Serial.printf("cnt = %d, dt[cnt] = %d, %d, data = %d\r\n",i, dt[i],dt[i+1],data[i]);
     }
     cnt=0;
     
-  for(t=2;t<10;t++) //Humid
+  for(t=1;t<9;t++) //Humid
   { 
     *readHumid = *readHumid<<1;
-    if( dt[t]>49)
+    if( data[t]>100)
     {
       *readHumid = *readHumid +1 ;
     }
@@ -67,7 +68,7 @@ int readDHT11(int *readTemp, int *readHumid)
   for(t=17;t<25;t++) //Temp
   { 
     *readTemp = *readTemp<<1;
-     if( dt[t]>49)
+     if( data[t]>100)
     {
       *readTemp = *readTemp +1 ;
     }
@@ -84,5 +85,7 @@ void loop() {
   readDHT11(&readTemp, &readHumid);
   delay(5500);
   Serial.printf("Temp: %d, Humid: %d\r\n",readTemp, readHumid);
+  dt[82]={0,};
+ data[82]={0,};
  
 }
